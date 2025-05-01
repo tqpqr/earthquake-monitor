@@ -16,11 +16,16 @@ RUN wget -q https://github.com/mozilla/geckodriver/releases/download/v0.34.0/gec
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы проекта
-COPY . .
+# Копируем requirements.txt отдельно для кэширования
+COPY requirements.txt .
 
-# Устанавливаем Python-зависимости
-RUN pip install --no-cache-dir -r requirements.txt
+# Устанавливаем Python-зависимости и проверяем установку
+RUN pip install --no-cache-dir -r requirements.txt \
+    && pip show python-telegram-bot \
+    && pip list
+
+# Копируем остальные файлы проекта
+COPY . .
 
 # Запускаем скрипт
 CMD ["python3", "eq2.py"]
