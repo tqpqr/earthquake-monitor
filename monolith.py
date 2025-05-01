@@ -41,6 +41,7 @@ class ParseMode:
     HTML = 'HTML'
 
 def main():
+    logger.info("Starting monolith script")
     """Main function to scrape data, generate map, and post to Telegram."""
     driver = None
     try:
@@ -53,7 +54,8 @@ def main():
         logger.info("Starting Firefox driver")
         options = Options()
         options.add_argument("--no-sandbox")
-        options.add_argument("--headless=new")
+        options.add_argument("--headless")  # Используем стандартный headless-режим
+        options.add_argument("--disable-dev-shm-usage")  # Уменьшаем использование shared memory
         driver = webdriver.Firefox(options=options)
         logger.info(f"Navigating to {url}")
         driver.get(url)
@@ -191,9 +193,10 @@ def main():
             logger.info("Message with photo sent successfully")
 
     except Exception as e:
-        logger.error(f"Critical error: {e}")
-        traceback.print_exc()
-        os.system('shutdown /r /t 1')
+        logger.error(f"Critical error: {str(e)}")
+        raise
+        #traceback.print_exc()
+        #os.system('shutdown /r /t 1')
     
     finally:
         if driver:
