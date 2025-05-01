@@ -1,1 +1,1 @@
-worker: python eq2.py
+worker: python3 eq2.py
