@@ -70,7 +70,7 @@ USGS_API_URL=https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.g
 - `TELEGRAM_TOKEN`: Obtain from [@BotFather](https://t.me/BotFather) on Telegram.
 - `TELEGRAM_CHANNEL_ID`: The ID of the Telegram channel (e.g., `@seismiczone`).
 - `UPDATE_FREQUENCY_MINUTES`: How often to check for new earthquakes (default: 5 minutes).
-- **MAGNITUDE_THRESHOLD**: Minimum earthquake magnitude to process (default: 4.0).
+- `MAGNITUDE_THRESHOLD`: Minimum earthquake magnitude to process (default: 4.0).
 - `USGS_API_URL`: USGS API endpoint (default fetches earthquakes ≥2.5 for the past 24 hours).
 
 ## Project Structure
@@ -102,7 +102,7 @@ earthquake-monitor/
    - Generate a map for new events with magnitude ≥4.0.
    - Post updates to the configured Telegram channel.
 
-## Deploying to Railway
+## Deploying
 1. **Push to GitHub**:
    - Ensure all files are committed and pushed to your GitHub repository.
    ```bash
@@ -111,13 +111,8 @@ earthquake-monitor/
    git push origin main
    ```
 
-2. **Set Up Railway**:
-   - Create a new project on [Railway](https://railway.app/).
-   - Link your GitHub repository and select the `main` branch.
-   - Railway will detect the `Dockerfile` and build the application.
-
-3. **Configure Railway Variables**:
-   - In Railway dashboard, go to "Variables" and add:
+2. **Configure Environment Variables**:
+   - add:
      ```plaintext
      TELEGRAM_TOKEN=your-telegram-bot-token
      TELEGRAM_CHANNEL_ID=@YourChannelID
@@ -125,10 +120,8 @@ earthquake-monitor/
      UPDATE_FREQUENCY_MINUTES=5
      MAGNITUDE_THRESHOLD=4.0
      ```
-   - Optionally, add `BUILD_ID=1` to force a fresh build, then remove it after deployment.
 
-4. **Monitor Deployment**:
-   - Check "Deployments" in Railway for build and runtime logs.
+3. **Monitor Deployment**:
    - Verify that messages are posted to your Telegram channel.
 
 ## Configuration
