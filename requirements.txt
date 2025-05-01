@@ -1,0 +1,5 @@
+requests==2.31.0
+pillow==10.0.0
+selenium==4.10.0
+python-telegram-bot==20.4
+schedule==1.2.0

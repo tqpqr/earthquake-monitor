@@ -1,0 +1,1 @@
+worker: python eq2.py

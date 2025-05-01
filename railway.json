@@ -1,0 +1,28 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS",
+    "nixpacksPlan": {
+      "providers": ["python"],
+      "phases": {
+        "setup": {
+          "aptPkgs": ["firefox", "wget"],
+          "cmds": [
+            "wget -q https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz",
+            "tar -xzf geckodriver-v0.34.0-linux64.tar.gz",
+            "mv geckodriver /usr/local/bin/",
+            "chmod +x /usr/local/bin/geckodriver"
+          ]
+        },
+        "install": {
+          "cmds": ["pip install -r requirements.txt"]
+        }
+      }
+    }
+  },
+  "deploy": {
+    "startCommand": "python eq2.py",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  }
+}
