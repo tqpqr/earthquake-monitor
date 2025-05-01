@@ -21,7 +21,7 @@ COPY requirements.txt .
 
 # Устанавливаем Python-зависимости и проверяем установку
 RUN pip install --no-cache-dir -r requirements.txt \
-    && pip show python-telegram-bot \
+    && pip show pyTelegramBotAPI \
     && pip list
 
 # Копируем остальные файлы проекта
