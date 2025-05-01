@@ -147,9 +147,6 @@ The USGS Earthquake API provides basic earthquake metadata (magnitude, location,
 - **Telegram Issues**:
   - Verify `TELEGRAM_TOKEN` and `TELEGRAM_CHANNEL_ID` are correct.
   - Ensure the bot is added to the channel with posting permissions.
-- **Deployment Failures**:
-  - Clear Railway build cache by adding `BUILD_ID=1` to variables and removing it after a successful build.
-  - Check Railway logs for errors during dependency installation or runtime.
 - **API Limitations**:
   - If the USGS API returns incomplete data, verify the `USGS_API_URL` in `.env`.
   - Note that some data (e.g., nearby settlements) are only available via web scraping.
