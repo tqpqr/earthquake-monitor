@@ -6,7 +6,7 @@
       "providers": ["python"],
       "phases": {
         "setup": {
-          "aptPkgs": ["firefox", "wget"],
+          "aptPkgs": ["python3", "python3-pip", "firefox", "wget"],
           "cmds": [
             "wget -q https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz",
             "tar -xzf geckodriver-v0.34.0-linux64.tar.gz",
@@ -15,14 +15,15 @@
           ]
         },
         "install": {
-          "cmds": ["pip install -r requirements.txt"]
+          "cmds": ["python3 -m pip install --no-cache-dir -r requirements.txt"]
         }
       }
     }
   },
   "deploy": {
-    "startCommand": "python eq2.py",
+    "startCommand": "python3 eq2.py",
     "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 10
+    "restartPolicyMaxRetries": 10,
+    "sleepApplication": false
   }
 }
