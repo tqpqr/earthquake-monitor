@@ -6,12 +6,17 @@
       "providers": ["python"],
       "phases": {
         "setup": {
-          "aptPkgs": ["python3", "python3-pip", "firefox", "wget"],
+          "aptPkgs": ["python3", "python3-pip", "python3-dev", "build-essential", "firefox", "wget"],
           "cmds": [
+            "apt-get update",
+            "apt-get install -y python3 python3-pip python3-dev build-essential firefox wget",
+            "python3 -m pip install --upgrade pip",
             "wget -q https://github.com/mozilla/geckodriver/releases/download/v0.34.0/geckodriver-v0.34.0-linux64.tar.gz",
             "tar -xzf geckodriver-v0.34.0-linux64.tar.gz",
             "mv geckodriver /usr/local/bin/",
-            "chmod +x /usr/local/bin/geckodriver"
+            "chmod +x /usr/local/bin/geckodriver",
+            "python3 --version",
+            "pip3 --version"
           ]
         },
         "install": {
