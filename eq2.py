@@ -4,6 +4,7 @@ import schedule
 import time
 import subprocess
 import os
+import sys  # Добавлен импорт sys
 from config import USGS_API_URL, MAGNITUDE_THRESHOLD, UPDATE_FREQUENCY_MINUTES
 
 # Настройка логирования
