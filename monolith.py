@@ -19,8 +19,7 @@ from time import sleep
 # Import configurations and map functions
 try:
     from config import (
-        TOKEN, CHANNEL_ID, BASE_DIR, COORDINATES_FILE, LAST_EVENT_FILE,
-        LAST_MAGNITUDE_FILE, NEW_MAP_FILE
+        TELEGRAM_TOKEN, TELEGRAM_CHANNEL_ID
     )
     from map2 import make_a_map, overlay_a_text
     logger = logging.getLogger(__name__)
@@ -35,6 +34,13 @@ logging.basicConfig(
     level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+# Define file paths
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+COORDINATES_FILE = os.path.join(BASE_DIR, "coordinates.txt")
+LAST_EVENT_FILE = os.path.join(BASE_DIR, "last_event.txt")
+LAST_MAGNITUDE_FILE = os.path.join(BASE_DIR, "last_magnitude.txt")
+NEW_MAP_FILE = os.path.join(BASE_DIR, "new_map.png")
 
 class ParseMode:
     """Telegram Message Parse Modes."""
@@ -54,8 +60,8 @@ def main():
         logger.info("Starting Firefox driver")
         options = Options()
         options.add_argument("--no-sandbox")
-        options.add_argument("--headless")  # Используем стандартный headless-режим
-        options.add_argument("--disable-dev-shm-usage")  # Уменьшаем использование shared memory
+        options.add_argument("--headless")
+        options.add_argument("--disable-dev-shm-usage")
         driver = webdriver.Firefox(options=options)
         logger.info(f"Navigating to {url}")
         driver.get(url)
@@ -144,7 +150,7 @@ def main():
 
         # Initialize Telegram bot
         logger.info("Initializing Telegram bot")
-        bot = TeleBot(token=TOKEN)
+        bot = TeleBot(token=TELEGRAM_TOKEN)
 
         # Read magnitude
         logger.info(f"Reading magnitude from {LAST_MAGNITUDE_FILE}")
@@ -181,11 +187,11 @@ def main():
         )
 
         # Send to Telegram
-        logger.info(f"Sending message to Telegram channel {CHANNEL_ID}")
+        logger.info(f"Sending message to Telegram channel {TELEGRAM_CHANNEL_ID}")
         if 'undefined' not in magnitude_and_location:
             with open(NEW_MAP_FILE, 'rb') as photo:
                 bot.send_photo(
-                    chat_id=CHANNEL_ID,
+                    chat_id=TELEGRAM_CHANNEL_ID,
                     photo=photo,
                     caption=msg,
                     parse_mode=ParseMode.HTML
@@ -195,8 +201,6 @@ def main():
     except Exception as e:
         logger.error(f"Critical error: {str(e)}")
         raise
-        #traceback.print_exc()
-        #os.system('shutdown /r /t 1')
     
     finally:
         if driver:
