@@ -29,7 +29,7 @@ def make_a_map(long_lat, scale, mark):
             logger.info(f"Requesting map from Yandex Maps: ll={normalized_long_lat}, spn={current_scale}")
             url = (
                 f"https://static-maps.yandex.ru/1.x/?ll={normalized_long_lat}&lang=en-US"
-                f"&spn={current_scale}&l=map&pt={normalized_long_lat},pm2rdm"
+                f"&spn={current_scale}&l=map&pt={normalized_long_lat},round"
             )
             response = get(url)
             if response.status_code == 200:
