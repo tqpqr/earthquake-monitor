@@ -11,13 +11,10 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def normalize_coordinates(long_lat):
-    """Normalize longitude to [-180, 180] and latitude to [-90, 90]."""
+    """Normalize longitude to [-180, 180] range."""
     try:
         lat, lon = map(float, long_lat.split(','))
         lon = ((lon + 180) % 360) - 180  # Normalize longitude
-        lat = max(min(lat, 90), -90)     # Clamp latitude
-        if abs(lon) >= 179.9 or abs(lat) >= 89.9:
-            logger.warning(f"Coordinates {long_lat} are near map boundaries")
         return f"{lat},{lon}"
     except Exception as e:
         logger.error(f"Failed to normalize coordinates {long_lat}: {str(e)}")
@@ -27,12 +24,12 @@ def make_a_map(long_lat, scale, mark):
     try:
         # Normalize coordinates
         normalized_long_lat = normalize_coordinates(long_lat)
-        scales = [scale, "5,5", "2,2", "1,1"]  # Try multiple scales
+        scales = [scale, "5,5", "2,2"]  # Try multiple scales if one fails
         for current_scale in scales:
-            logger.info(f"Requesting map from Yandex Maps: ll={normalized_long_lat}, spn={current_scale}, pt={mark}")
+            logger.info(f"Requesting map from Yandex Maps: ll={normalized_long_lat}, spn={current_scale}")
             url = (
                 f"https://static-maps.yandex.ru/1.x/?ll={normalized_long_lat}&lang=en-US"
-                f"&spn={current_scale}&l=map&pt={normalized_long_lat},{mark}"
+                f"&spn={current_scale}&l=map&pt={normalized_long_lat},pm2rdm"
             )
             response = get(url)
             if response.status_code == 200:
@@ -46,11 +43,10 @@ def make_a_map(long_lat, scale, mark):
                     logger.info(f"Retrying with smaller scale: {current_scale}")
                     continue
                 raise Exception(f"Yandex Maps API error: {response.status_code}, {response.text}")
-        logger.error("Failed to fetch map after trying all scales")
-        return None  # Return None to allow script to continue without map
+        raise Exception("Failed to fetch map after trying all scales")
     except Exception as e:
         logger.error(f"Failed to fetch map: {str(e)}")
-        return None
+        raise
 
 def overlay_a_text(title):
     try:
@@ -63,10 +59,9 @@ def overlay_a_text(title):
         my_img = Image.alpha_composite(image, imageWatermark)
         my_img.save('new_map.png')
         logger.info("Map with text and watermark saved as new_map.png")
-        return True
     except Exception as e:
         logger.error(f"Failed to process image: {str(e)}")
-        return False
+        raise
 
 def main():
     long_lat = '-117.8987,38.1577'
@@ -75,17 +70,14 @@ def main():
     mark = 'pm2rdm'
     try:
         response = make_a_map(long_lat, scale, mark)
-        if response:
-            with open("map.png", "wb") as file:
-                file.write(response.content)
-                logger.info("Map saved as map.png")
-            sleep(1)
-            if overlay_a_text(title):
-                image = Image.open("new_map.png")
-                image.show()
-                logger.info("Map displayed successfully")
-        else:
-            logger.warning("Map generation skipped due to API error")
+        with open("map.png", "wb") as file:
+            file.write(response.content)
+            logger.info("Map saved as map.png")
+        sleep(1)
+        overlay_a_text(title)
+        image = Image.open("new_map.png")
+        image.show()
+        logger.info("Map displayed successfully")
     except Exception as e:
         logger.error(f"Failed to save or display map: {str(e)}")
 
