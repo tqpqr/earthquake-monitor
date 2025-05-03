@@ -10,16 +10,40 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+def normalize_coordinates(long_lat):
+    """Normalize longitude to [-180, 180] range."""
+    try:
+        lat, lon = map(float, long_lat.split(','))
+        lon = ((lon + 180) % 360) - 180  # Normalize longitude
+        return f"{lat},{lon}"
+    except Exception as e:
+        logger.error(f"Failed to normalize coordinates {long_lat}: {str(e)}")
+        raise
+
 def make_a_map(long_lat, scale, mark):
     try:
-        logger.info(f"Requesting map from Yandex Maps: ll={long_lat}, spn={scale}")
-        response = get(f"https://static-maps.yandex.ru/1.x/?ll={long_lat}&lang=en-US&spn={scale}&l=map&pt={long_lat},round,5.5")
-        if response.status_code != 200:
-            raise Exception(f"Yandex Maps API error: {response.status_code}, {response.text}")
-        if not response.headers['Content-Type'].startswith('image'):
-            raise Exception(f"Response is not an image: {response.text}")
-        logger.info("Map retrieved successfully")
-        return response
+        # Normalize coordinates
+        normalized_long_lat = normalize_coordinates(long_lat)
+        scales = [scale, "5,5", "2,2"]  # Try multiple scales if one fails
+        for current_scale in scales:
+            logger.info(f"Requesting map from Yandex Maps: ll={normalized_long_lat}, spn={current_scale}")
+            url = (
+                f"https://static-maps.yandex.ru/1.x/?ll={normalized_long_lat}&lang=en-US"
+                f"&spn={current_scale}&l=map&pt={normalized_long_lat},pm2rdm"
+            )
+            response = get(url)
+            if response.status_code == 200:
+                if not response.headers['Content-Type'].startswith('image'):
+                    raise Exception(f"Response is not an image: {response.text}")
+                logger.info("Map retrieved successfully")
+                return response
+            else:
+                logger.warning(f"Yandex Maps API error: {response.status_code}, {response.text}")
+                if response.status_code == 400:
+                    logger.info(f"Retrying with smaller scale: {current_scale}")
+                    continue
+                raise Exception(f"Yandex Maps API error: {response.status_code}, {response.text}")
+        raise Exception("Failed to fetch map after trying all scales")
     except Exception as e:
         logger.error(f"Failed to fetch map: {str(e)}")
         raise
