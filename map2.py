@@ -29,7 +29,7 @@ def make_a_map(long_lat, scale, mark):
             logger.info(f"Requesting map from Yandex Maps: ll={normalized_long_lat}, spn={current_scale}")
             url = (
                 f"https://static-maps.yandex.ru/1.x/?ll={normalized_long_lat}&lang=en-US"
-                f"&spn={current_scale}&l=map&pt={normalized_long_lat},round"
+                f"&spn={current_scale}&l=map&pt={normalized_long_lat},round,5.5"
             )
             response = get(url)
             if response.status_code == 200:
@@ -67,7 +67,7 @@ def main():
     long_lat = '-117.8987,38.1577'
     title = '57 км к западу от Нанвалека, Аляска'
     scale = '15.5,15.5'
-    mark = 'pm2rdm'
+    mark = 'round'
     try:
         response = make_a_map(long_lat, scale, mark)
         with open("map.png", "wb") as file:
