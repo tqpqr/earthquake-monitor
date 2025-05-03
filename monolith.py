@@ -142,11 +142,18 @@ def main():
 
         # Generate map
         logger.info("Generating map")
-        response = make_a_map(long_lat, '10,10', 'round')
-        with open(os.path.join(BASE_DIR, 'map.png'), 'wb') as file:
-            file.write(response.content)
-        sleep(5)
-        overlay_a_text(magnitude_and_location)
+        response = make_a_map(long_lat, '10,10', 'pm2rdm')
+        map_generated = False
+        if response:
+            with open(os.path.join(BASE_DIR, 'map.png'), 'wb') as file:
+                file.write(response.content)
+            sleep(5)
+            if overlay_a_text(magnitude_and_location):
+                map_generated = True
+            else:
+                logger.warning("Failed to overlay text on map")
+        else:
+            logger.warning("Map generation failed, proceeding without map")
 
         # Initialize Telegram bot
         logger.info("Initializing Telegram bot")
@@ -189,14 +196,24 @@ def main():
         # Send to Telegram
         logger.info(f"Sending message to Telegram channel {TELEGRAM_CHANNEL_ID}")
         if 'undefined' not in magnitude_and_location:
-            with open(NEW_MAP_FILE, 'rb') as photo:
-                bot.send_photo(
+            if map_generated:
+                with open(NEW_MAP_FILE, 'rb') as photo:
+                    bot.send_photo(
+                        chat_id=TELEGRAM_CHANNEL_ID,
+                        photo=photo,
+                        caption=msg,
+                        parse_mode=ParseMode.HTML
+                    )
+                logger.info("Message with photo sent successfully")
+            else:
+                bot.send_message(
                     chat_id=TELEGRAM_CHANNEL_ID,
-                    photo=photo,
-                    caption=msg,
+                    text=msg + "\n<i>Map unavailable due to API error.</i>",
                     parse_mode=ParseMode.HTML
                 )
-            logger.info("Message with photo sent successfully")
+                logger.info("Message sent without photo due to map generation failure")
+        else:
+            logger.warning("Skipping Telegram message due to invalid magnitude_and_location")
 
     except Exception as e:
         logger.error(f"Critical error: {str(e)}")
