@@ -4,7 +4,8 @@ import schedule
 import time
 import subprocess
 import os
-import sys  # Добавлен импорт sys
+import sys
+
 from config import USGS_API_URL, MAGNITUDE_THRESHOLD, UPDATE_FREQUENCY_MINUTES
 
 # Настройка логирования
@@ -48,9 +49,17 @@ def check_earthquakes():
         
         # Сохраняем координаты
         coordinates = latest_quake["geometry"]["coordinates"]
-        logger.info("Saving coordinates")
+        longitude, latitude = coordinates[0], coordinates[1]
+        # Валидация координат
+        if not (-180 <= longitude <= 180):
+            logger.error(f"Invalid longitude: {longitude}")
+            return
+        if not (-90 <= latitude <= 90):
+            logger.error(f"Invalid latitude: {latitude}")
+            return
+        logger.info(f"Saving coordinates: latitude={latitude}, longitude={longitude}")
         with open(COORDINATES_FILE, "w") as f:
-            f.write(f"{coordinates[1]},{coordinates[0]}")
+            f.write(f"{latitude},{longitude}")
         logger.debug(f"Successfully saved content to {COORDINATES_FILE}")
         
         # Проверяем, новое ли это событие

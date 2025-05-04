@@ -140,6 +140,7 @@ def main():
         logger.info(f"Reading coordinates from {COORDINATES_FILE}")
         with open(COORDINATES_FILE, 'r') as f:
             long_lat = f.read().strip()
+        logger.info(f"Coordinates read: {long_lat}")
 
         # Remove old map files
         logger.info("Removing old map files if they exist")

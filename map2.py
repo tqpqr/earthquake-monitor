@@ -11,14 +11,21 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 def normalize_coordinates(long_lat):
-    """Normalize longitude to [-180, 180] and latitude to [-90, 90]."""
+    """Normalize and swap coordinates from latitude,longitude to longitude,latitude."""
     try:
         lat, lon = map(float, long_lat.split(','))
+        # Validate ranges
+        if not (-90 <= lat <= 90):
+            raise ValueError(f"Invalid latitude: {lat} (must be between -90 and 90)")
+        if not (-180 <= lon <= 180):
+            raise ValueError(f"Invalid longitude: {lon} (must be between -180 and 180)")
+        # Swap lat,lon to lon,lat for Yandex API
         lon = ((lon + 180) % 360) - 180  # Normalize longitude
         lat = max(min(lat, 90), -90)     # Clamp latitude
         if abs(lon) >= 179.9 or abs(lat) >= 89.9:
-            logger.warning(f"Coordinates {long_lat} are near map boundaries")
-        return f"{lat},{lon}"
+            logger.warning(f"Coordinates lat={lat}, lon={lon} are near map boundaries")
+        logger.info(f"Normalized coordinates: input={long_lat}, output={lon},{lat}")
+        return f"{lon},{lat}"
     except Exception as e:
         logger.error(f"Failed to normalize coordinates {long_lat}: {str(e)}")
         raise
@@ -34,6 +41,7 @@ def make_a_map(long_lat, scale):
                 f"https://static-maps.yandex.ru/1.x/?ll={normalized_long_lat}&lang=en-US&"
                 f"spn={current_scale}&l=map&pt={normalized_long_lat},round,5.5"
             )
+            logger.debug(f"Full Yandex Maps URL: {url}")
             response = get(url)
             if response.status_code == 200:
                 if not response.headers['Content-Type'].startswith('image'):
