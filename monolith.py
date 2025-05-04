@@ -40,6 +40,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 COORDINATES_FILE = os.path.join(BASE_DIR, "coordinates.txt")
 LAST_EVENT_FILE = os.path.join(BASE_DIR, "last_event.txt")
 LAST_MAGNITUDE_FILE = os.path.join(BASE_DIR, "last_magnitude.txt")
+MAP_FILE = os.path.join(BASE_DIR, "map.png")
 NEW_MAP_FILE = os.path.join(BASE_DIR, "new_map.png")
 
 class ParseMode:
@@ -140,13 +141,34 @@ def main():
         with open(COORDINATES_FILE, 'r') as f:
             long_lat = f.read().strip()
 
+        # Remove old map files
+        logger.info("Removing old map files if they exist")
+        for map_file in [MAP_FILE, NEW_MAP_FILE]:
+            if os.path.exists(map_file):
+                try:
+                    os.remove(map_file)
+                    logger.info(f"Removed {map_file}")
+                except Exception as e:
+                    logger.warning(f"Failed to remove {map_file}: {str(e)}")
+
         # Generate map
         logger.info("Generating map")
-        response = make_a_map(long_lat, '10,10', 'round')
-        with open(os.path.join(BASE_DIR, 'map.png'), 'wb') as file:
-            file.write(response.content)
-        sleep(5)
-        overlay_a_text(magnitude_and_location)
+        response = make_a_map(long_lat, '10,10')
+        map_generated = False
+        if response:
+            with open(MAP_FILE, 'wb') as file:
+                file.write(response.content)
+            logger.info(f"Map saved as {MAP_FILE}")
+            sleep(5)
+            if overlay_a_text(magnitude_and_location):
+                if os.path.exists(NEW_MAP_FILE):
+                    map_generated = True
+                else:
+                    logger.warning(f"Map file {NEW_MAP_FILE} was not created")
+            else:
+                logger.warning("Failed to overlay text on map")
+        else:
+            logger.warning("Map generation failed, proceeding without map")
 
         # Initialize Telegram bot
         logger.info("Initializing Telegram bot")
@@ -189,14 +211,24 @@ def main():
         # Send to Telegram
         logger.info(f"Sending message to Telegram channel {TELEGRAM_CHANNEL_ID}")
         if 'undefined' not in magnitude_and_location:
-            with open(NEW_MAP_FILE, 'rb') as photo:
-                bot.send_photo(
+            if map_generated and os.path.exists(NEW_MAP_FILE):
+                with open(NEW_MAP_FILE, 'rb') as photo:
+                    bot.send_photo(
+                        chat_id=TELEGRAM_CHANNEL_ID,
+                        photo=photo,
+                        caption=msg,
+                        parse_mode=ParseMode.HTML
+                    )
+                logger.info("Message with photo sent successfully")
+            else:
+                bot.send_message(
                     chat_id=TELEGRAM_CHANNEL_ID,
-                    photo=photo,
-                    caption=msg,
+                    text=msg + "\n<i>Map unavailable due to API error.</i>",
                     parse_mode=ParseMode.HTML
                 )
-            logger.info("Message with photo sent successfully")
+                logger.info("Message sent without photo due to map generation failure")
+        else:
+            logger.warning("Skipping Telegram message due to invalid magnitude_and_location")
 
     except Exception as e:
         logger.error(f"Critical error: {str(e)}")
